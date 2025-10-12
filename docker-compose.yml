@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # 1. SERVICIO DE BASE DE DATOS (MONGODB)
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb_finance_app
+    restart: always
+    ports:
+      # Puerto de acceso desde tu WSL/Host (ej. para MongoDB Compass)
+      - "27017:27017" 
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-user}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-finance_db}
+    volumes:
+      - mongodb_data:/data/db
+      # Script de inicialización para índices y validaciones
+      - ./app-finanza-back/mongodb-init.js:/docker-entrypoint-initdb.d/mongodb-init.js:ro
+    healthcheck:
+      test: mongosh --eval "db.adminCommand('ping')"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  # 2. SERVICIO DEL BACKEND (NESTJS)
+  app_backend:
+    build:
+      context: ./app-finanza-back
+      dockerfile: Dockerfile
+      target: ${NODE_ENV:-development}
+    container_name: nestjs_finance_backend
+    restart: always
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - ./app-finanza-back/.env
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - MONGODB_URI=mongodb://${MONGO_USER:-user}:${MONGO_PASSWORD:-password}@mongodb:27017/${MONGO_DB:-finance_db}?authSource=admin
+    volumes:
+      - ./app-finanza-back:/app
+      - /app/node_modules
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    networks:
+      - app-network
+
+  # 3. SERVICIO DEL FRONTEND (NEXTJS)
+  app_frontend: # Nombre del servicio: app_frontend
+    build:
+      # Contexto: la carpeta de tu frontend
+      context: ./app-finanzas 
+      dockerfile: Dockerfile
+    container_name: nextjs_finance_frontend
+    restart: always
+    ports:
+      # Exponemos el frontend en 3001
+      - "3001:3000" 
+    depends_on:
+      - app_backend # Depende del backend para las llamadas de la API
+    environment:
+      NODE_ENV: development
+      # CLAVE: La URL de la API apunta al servicio backend: 'http://app_backend:3000'
+      NEXT_PUBLIC_API_URL: http://app_backend:3000 
+    volumes:
+      # Mapeo para desarrollo en vivo
+      - ./app-finanzas:/app
+      - /app/node_modules
+
+# VOLÚMENES PARA PERSISTENCIA DE DATOS
+# Definición de redes
+networks:
+  app-network:
+    driver: bridge
+
+# Definición de volúmenes
+volumes:
+  mongodb_data:
+    driver: local
