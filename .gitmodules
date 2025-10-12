@@ -1,0 +1,6 @@
+[submodule "app-finanza-back"]
+	path = app-finanza-back
+	url = git@github.com:KatherineGomez03/app-finanza-back.git
+[submodule "app-finanzas"]
+	path = app-finanzas
+	url = git@github.com:KatherineGomez03/app-finanzas.git
