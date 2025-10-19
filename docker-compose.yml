@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # 1. SERVICIO DE BASE DE DATOS (MONGODB)
@@ -57,26 +56,24 @@ services:
       - app-network
 
   # 3. SERVICIO DEL FRONTEND (NEXTJS)
-  app_frontend: # Nombre del servicio: app_frontend
+  app_frontend:
     build:
-      # Contexto: la carpeta de tu frontend
       context: ./app-finanzas 
       dockerfile: Dockerfile
+      target: ${NODE_ENV:-development}
     container_name: nextjs_finance_frontend
     restart: always
     ports:
-      # Exponemos el frontend en 3001
-      - "3001:3000" 
+      - "3001:3000"
     depends_on:
-      - app_backend # Depende del backend para las llamadas de la API
+      - app_backend
     environment:
-      NODE_ENV: development
-      # CLAVE: La URL de la API apunta al servicio backend: 'http://app_backend:3000'
-      NEXT_PUBLIC_API_URL: http://app_backend:3000 
+      - NODE_ENV=${NODE_ENV:-development}
+      - NEXT_PUBLIC_API_URL=http://app_backend:3000
     volumes:
-      # Mapeo para desarrollo en vivo
       - ./app-finanzas:/app
       - /app/node_modules
+      - /app/.next
 
 # VOLÚMENES PARA PERSISTENCIA DE DATOS
 # Definición de redes
