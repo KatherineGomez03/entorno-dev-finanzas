@@ -9,15 +9,11 @@
    - Crear una experiencia interactiva y gratificante
 
 2. **Tipos de Recompensas**
-   - **Insignias (BADGE)**: Reconocimientos por logros específicos
-   - **Temas (THEME)**: Personalizaciones visuales de la aplicación
-   - **Características (FEATURE)**: Funcionalidades especiales desbloqueables
-   - **Bonificaciones (BONUS)**: Beneficios adicionales como puntos extra o tasas especiales
+
 
 3. **Casos de Uso**
-   - Recompensar al usuario por alcanzar metas de ahorro
+   - Recompensar al usuario por alcanzar una mision
    - Premiar la consistencia en el registro de gastos
-   - Desbloquear funciones premium por buen comportamiento financiero
    - Crear competencia sana entre usuarios
    - Incentivar el uso regular de la aplicación
 
